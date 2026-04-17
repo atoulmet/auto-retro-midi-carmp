@@ -13,30 +13,49 @@ function showResult(text) {
   result.classList.add("visible");
 }
 
-function extractWaypoints(xml) {
-  const points = [];
+function extractRouteCoords(xml) {
+  const lineMatch = xml.match(
+    /<LineString>\s*<tessellate>[^<]*<\/tessellate>\s*<coordinates>([\s\S]*?)<\/coordinates>\s*<\/LineString>/i
+  );
+  if (!lineMatch) return [];
+
+  return lineMatch[1]
+    .trim()
+    .split(/\s+/)
+    .map((c) => {
+      const [lng, lat] = c.split(",").map(Number);
+      return { lat, lng };
+    })
+    .filter((p) => !isNaN(p.lat) && !isNaN(p.lng));
+}
+
+function extractPlacemarkNames(xml) {
+  const names = [];
   const re = /<Placemark[\s>]([\s\S]*?)<\/Placemark>/gi;
   let match;
 
   while ((match = re.exec(xml)) !== null) {
     const block = match[1];
-
-    const pointMatch = block.match(
-      /<Point>\s*<coordinates>\s*([\s\S]*?)\s*<\/coordinates>\s*<\/Point>/i
-    );
-    if (!pointMatch) continue;
-
+    if (!/<Point>/i.test(block)) continue;
     const nameMatch = block.match(/<name>([\s\S]*?)<\/name>/i);
-    const name = nameMatch ? nameMatch[1].trim() : "";
-
-    const coords = pointMatch[1].trim().split(",");
-    const lng = parseFloat(coords[0]);
-    const lat = parseFloat(coords[1]);
-
-    points.push({ name, lat, lng });
+    if (nameMatch) names.push(nameMatch[1].trim());
   }
 
-  return points;
+  return names;
+}
+
+function sampleWaypoints(coords, maxWaypoints = 25) {
+  if (coords.length <= maxWaypoints) return coords;
+
+  const result = [coords[0]];
+  const step = (coords.length - 1) / (maxWaypoints - 1);
+
+  for (let i = 1; i < maxWaypoints - 1; i++) {
+    result.push(coords[Math.round(i * step)]);
+  }
+
+  result.push(coords[coords.length - 1]);
+  return result;
 }
 
 async function processFile(file) {
@@ -48,18 +67,23 @@ async function processFile(file) {
   setStatus("Lecture du fichier…", "loading");
 
   const text = await file.text();
-  const waypoints = extractWaypoints(text);
+  const coords = extractRouteCoords(text);
+  const names = extractPlacemarkNames(text);
 
-  if (waypoints.length < 2) {
+  if (coords.length < 2) {
     setStatus(
-      "Moins de 2 points trouvés dans le KML. Vérifiez qu'il contient un itinéraire avec des étapes.",
+      "Pas de tracé trouvé dans le KML. Vérifiez qu'il contient un itinéraire avec une LineString.",
       "error"
     );
     return;
   }
 
+  const waypoints = sampleWaypoints(coords, 25);
+  if (names[0]) waypoints[0].name = names[0];
+  if (names[names.length - 1]) waypoints[waypoints.length - 1].name = names[names.length - 1];
+
   setStatus(
-    `${waypoints.length} points détectés. Calcul de l'itinéraire…`,
+    `${coords.length} points → ${waypoints.length} waypoints. Calcul de l'itinéraire…`,
     "loading"
   );
 

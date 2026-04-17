@@ -33,31 +33,52 @@ if (!apiKey) {
 
 const kml = fs.readFileSync(filePath, "utf-8");
 
-function extractWaypoints(xml) {
-  const points = [];
+function extractRouteCoords(xml) {
+  // Extraire toutes les coordonnées de la LineString (le tracé du parcours)
+  const lineMatch = xml.match(
+    /<LineString>\s*<tessellate>[^<]*<\/tessellate>\s*<coordinates>([\s\S]*?)<\/coordinates>\s*<\/LineString>/i
+  );
+  if (!lineMatch) return [];
+
+  return lineMatch[1]
+    .trim()
+    .split(/\s+/)
+    .map((c) => {
+      const [lng, lat] = c.split(",").map(Number);
+      return { lat, lng };
+    })
+    .filter((p) => !isNaN(p.lat) && !isNaN(p.lng));
+}
+
+function extractPlacemarkNames(xml) {
+  // Extraire les noms des Points (départ/arrivée)
+  const names = [];
   const re = /<Placemark[\s>]([\s\S]*?)<\/Placemark>/gi;
   let match;
 
   while ((match = re.exec(xml)) !== null) {
     const block = match[1];
-
-    // On ne garde que les Placemarks avec un <Point> (pas les LineString)
-    const pointMatch = block.match(
-      /<Point>\s*<coordinates>\s*([\s\S]*?)\s*<\/coordinates>\s*<\/Point>/i
-    );
-    if (!pointMatch) continue;
-
+    if (!/<Point>/i.test(block)) continue;
     const nameMatch = block.match(/<name>([\s\S]*?)<\/name>/i);
-    const name = nameMatch ? nameMatch[1].trim() : "";
-
-    const coords = pointMatch[1].trim().split(",");
-    const lng = parseFloat(coords[0]);
-    const lat = parseFloat(coords[1]);
-
-    points.push({ name, lat, lng });
+    if (nameMatch) names.push(nameMatch[1].trim());
   }
 
-  return points;
+  return names;
+}
+
+function sampleWaypoints(coords, maxWaypoints = 25) {
+  // Échantillonner des points le long du tracé pour rester sous la limite API
+  if (coords.length <= maxWaypoints) return coords;
+
+  const result = [coords[0]];
+  const step = (coords.length - 1) / (maxWaypoints - 1);
+
+  for (let i = 1; i < maxWaypoints - 1; i++) {
+    result.push(coords[Math.round(i * step)]);
+  }
+
+  result.push(coords[coords.length - 1]);
+  return result;
 }
 
 function stripHtml(html) {
@@ -153,18 +174,25 @@ function formatDirections(data, waypoints) {
 }
 
 async function main() {
-  const waypoints = extractWaypoints(kml);
+  const coords = extractRouteCoords(kml);
+  const names = extractPlacemarkNames(kml);
 
-  if (waypoints.length < 2) {
+  if (coords.length < 2) {
     console.error(
-      "Erreur : moins de 2 points trouvés dans le KML. " +
-        "Vérifiez que le fichier contient des Placemarks avec des <Point>."
+      "Erreur : pas de tracé (LineString) trouvé dans le KML."
     );
     process.exit(1);
   }
 
+  const waypoints = sampleWaypoints(coords, 25);
+
+  // Attacher les noms de départ/arrivée
+  if (names[0]) waypoints[0].name = names[0];
+  if (names[names.length - 1]) waypoints[waypoints.length - 1].name = names[names.length - 1];
+
   console.log(
-    `Points détectés (${waypoints.length}) : ${waypoints.map((w) => w.name || `${w.lat},${w.lng}`).join(" → ")}\n`
+    `Tracé : ${coords.length} points → ${waypoints.length} waypoints échantillonnés\n` +
+    `${names[0] || "Départ"} → ${names[names.length - 1] || "Arrivée"}\n`
   );
 
   const data = await getDirections(waypoints);
