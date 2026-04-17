@@ -15,12 +15,18 @@ export default async function handler(req, res) {
 
   try {
     const params = new URLSearchParams({
-      size: "600x600",
+      size: "600x700",
       scale: "2",
       maptype: "roadmap",
       path: `color:0x4a90d9ff|weight:4|enc:${polyline}`,
       key: apiKey,
     });
+
+    // Cacher les points d'intérêt
+    params.append("style", "feature:poi|visibility:off");
+    // Cacher les labels des petites localités, garder les grandes villes
+    params.append("style", "feature:administrative.locality|element:labels.icon|visibility:off");
+    params.append("style", "feature:administrative.neighborhood|element:labels|visibility:off");
 
     const apiRes = await fetch(
       `https://maps.googleapis.com/maps/api/staticmap?${params}`
