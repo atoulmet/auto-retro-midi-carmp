@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   const params = new URLSearchParams({
     origin,
     destination,
-    mode: "bicycling",
+    mode: "driving",
     language: "fr",
     key: apiKey,
   });
@@ -69,9 +69,13 @@ function formatDirections(data, waypoints) {
       `--- Tronçon ${legIdx + 1} : ${from} → ${to} (${leg.distance.text}, ${leg.duration.text}) ---`
     );
 
-    leg.steps.forEach((step, stepIdx) => {
+    const MIN_DISTANCE = 500; // mètres — ignore les micro-virages
+    let stepNum = 0;
+    leg.steps.forEach((step) => {
+      if (step.distance.value < MIN_DISTANCE) return;
+      stepNum++;
       const instruction = stripHtml(step.html_instructions);
-      lines.push(`  ${stepIdx + 1}. ${instruction} (${step.distance.text})`);
+      lines.push(`  ${stepNum}. ${instruction} (${step.distance.text})`);
     });
 
     lines.push("");
