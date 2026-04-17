@@ -117,8 +117,34 @@ p {
   color: #4a90d9;
 }
 
-#result {
+#result-wrapper {
+  position: relative;
   margin-top: 1rem;
+  display: none;
+}
+
+#result-wrapper.visible {
+  display: block;
+}
+
+#copy-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+#copy-btn:hover {
+  background: #333;
+}
+
+#result {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -128,11 +154,4 @@ p {
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 70vh;
-  overflow-y: auto;
-  display: none;
-}
-
-#result.visible {
-  display: block;
 }

@@ -69,16 +69,14 @@ function formatDirections(data, waypoints) {
     const to = waypoints[legIdx + 1]?.name || leg.end_address;
 
     lines.push(
-      `--- Tronçon ${legIdx + 1} : ${from} → ${to} (${leg.distance.text}, ${leg.duration.text}) ---`
+      `▶️ ${from} → ${to} (${leg.distance.text}, ${leg.duration.text})`
     );
 
     const MIN_DISTANCE = 500; // mètres — ignore les micro-virages
-    let stepNum = 0;
     leg.steps.forEach((step) => {
       if (step.distance.value < MIN_DISTANCE) return;
-      stepNum++;
       const instruction = stripHtml(step.html_instructions);
-      lines.push(`  ${stepNum}. ${instruction} (${step.distance.text})`);
+      lines.push(`  ${instruction} (${step.distance.text})`);
     });
 
     lines.push("");

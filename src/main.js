@@ -3,7 +3,9 @@ const fileInput = document.getElementById("file-input");
 const urlInput = document.getElementById("url-input");
 const urlBtn = document.getElementById("url-btn");
 const status = document.getElementById("status");
+const resultWrapper = document.getElementById("result-wrapper");
 const result = document.getElementById("result");
+const copyBtn = document.getElementById("copy-btn");
 
 function setStatus(msg, type = "") {
   status.textContent = msg;
@@ -12,7 +14,7 @@ function setStatus(msg, type = "") {
 
 function showResult(text) {
   result.textContent = text;
-  result.classList.add("visible");
+  resultWrapper.classList.add("visible");
 }
 
 // --- URL Google Maps ---
@@ -160,6 +162,14 @@ async function processFile(file) {
   setStatus("");
   showResult(data.text);
 }
+
+// --- Copy ---
+
+copyBtn.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(result.textContent);
+  copyBtn.textContent = "Copié !";
+  setTimeout(() => (copyBtn.textContent = "Copier"), 1500);
+});
 
 // --- Events ---
 
