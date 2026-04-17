@@ -148,16 +148,37 @@ p {
   background: #333;
 }
 
-#map-img {
+#map-container {
   display: none;
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  position: relative;
   margin-top: 0.75rem;
 }
 
-#map-img.visible {
+#map-container.visible {
   display: block;
+}
+
+#map-img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+#download-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+#download-btn:hover {
+  background: #333;
 }
 
 #result {

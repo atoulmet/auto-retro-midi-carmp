@@ -9,17 +9,20 @@ const copyBtn = document.getElementById("copy-btn");
 const mapBtn = document.getElementById("map-btn");
 const mapImg = document.getElementById("map-img");
 
-let currentPolyline = null;
+const mapContainer = document.getElementById("map-container");
+const downloadBtn = document.getElementById("download-btn");
+
+let currentMapData = null;
 
 function setStatus(msg, type = "") {
   status.textContent = msg;
   status.className = type;
 }
 
-function showResult(text, polyline) {
-  result.textContent = text;
-  currentPolyline = polyline || null;
-  mapImg.classList.remove("visible");
+function showResult(data) {
+  result.textContent = data.text;
+  currentMapData = data;
+  mapContainer.classList.remove("visible");
   resultWrapper.classList.add("visible");
 }
 
@@ -75,7 +78,7 @@ async function processUrl() {
   }
 
   setStatus("");
-  showResult(data.text, data.polyline);
+  showResult(data);
 }
 
 // --- GPX ---
@@ -166,7 +169,7 @@ async function processFile(file) {
   }
 
   setStatus("");
-  showResult(data.text, data.polyline);
+  showResult(data);
 }
 
 // --- Copy ---
@@ -180,14 +183,18 @@ copyBtn.addEventListener("click", async () => {
 // --- Map image ---
 
 mapBtn.addEventListener("click", async () => {
-  if (!currentPolyline) return;
+  if (!currentMapData) return;
 
   mapBtn.textContent = "Chargement…";
 
   const res = await fetch("/api/static-map", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ polyline: currentPolyline }),
+    body: JSON.stringify({
+      polyline: currentMapData.polyline,
+      origin: currentMapData.origin,
+      destination: currentMapData.destination,
+    }),
   });
 
   if (!res.ok) {
@@ -197,9 +204,42 @@ mapBtn.addEventListener("click", async () => {
   }
 
   const blob = await res.blob();
-  mapImg.src = URL.createObjectURL(blob);
-  mapImg.classList.add("visible");
-  mapBtn.textContent = "Générer une image";
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    const barHeight = 60;
+    canvas.width = img.width;
+    canvas.height = img.height + barHeight;
+    const ctx = canvas.getContext("2d");
+
+    // Fond blanc pour la barre de texte
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, barHeight);
+
+    // Texte résumé
+    ctx.fillStyle = "#1a1a1a";
+    ctx.font = "bold 28px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(currentMapData.summary, canvas.width / 2, 40);
+
+    // Image de la carte
+    ctx.drawImage(img, 0, barHeight);
+
+    canvas.toBlob((finalBlob) => {
+      const blobUrl = URL.createObjectURL(finalBlob);
+      mapImg.src = blobUrl;
+      mapContainer.classList.add("visible");
+      mapBtn.textContent = "Générer une image";
+
+      downloadBtn.onclick = () => {
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = "itineraire.png";
+        a.click();
+      };
+    });
+  };
+  img.src = URL.createObjectURL(blob);
 });
 
 // --- Events ---

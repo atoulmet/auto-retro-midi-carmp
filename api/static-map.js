@@ -8,17 +8,25 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Clé API non configurée sur le serveur" });
   }
 
-  const { polyline } = req.body;
+  const { polyline, origin, destination } = req.body;
   if (!polyline) {
     return res.status(400).json({ error: "Polyline manquante" });
   }
 
   const params = new URLSearchParams({
-    size: "800x600",
+    size: "600x600",
+    scale: "2",
     maptype: "roadmap",
-    path: `enc:${polyline}`,
+    path: `color:0x4a90d9ff|weight:4|enc:${polyline}`,
     key: apiKey,
   });
+
+  if (origin) {
+    params.append("markers", `color:green|label:A|${origin}`);
+  }
+  if (destination) {
+    params.append("markers", `color:red|label:B|${destination}`);
+  }
 
   const apiRes = await fetch(
     `https://maps.googleapis.com/maps/api/staticmap?${params}`

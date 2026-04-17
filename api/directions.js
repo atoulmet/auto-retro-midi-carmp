@@ -44,7 +44,23 @@ export default async function handler(req, res) {
 
   const text = formatDirections(data, waypoints);
   const polyline = data.routes[0].overview_polyline.points;
-  return res.status(200).json({ text, polyline });
+
+  const legs = data.routes[0].legs;
+  const origin = legs[0].start_location;
+  const destination = legs[legs.length - 1].end_location;
+  const totalDist = legs.reduce((s, l) => s + l.distance.value, 0);
+  const totalTime = legs.reduce((s, l) => s + l.duration.value, 0);
+  const km = (totalDist / 1000).toFixed(1);
+  const h = Math.floor(totalTime / 3600);
+  const m = Math.round((totalTime % 3600) / 60);
+
+  return res.status(200).json({
+    text,
+    polyline,
+    origin: `${origin.lat},${origin.lng}`,
+    destination: `${destination.lat},${destination.lng}`,
+    summary: `${km} km — ${h}h${String(m).padStart(2, "0")}`,
+  });
 }
 
 function stripHtml(html) {
