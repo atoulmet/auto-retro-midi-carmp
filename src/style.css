@@ -127,10 +127,14 @@ p {
   display: block;
 }
 
-#copy-btn {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+#result-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#result-actions button {
   padding: 0.35rem 0.8rem;
   background: #1a1a1a;
   color: #fff;
@@ -140,8 +144,20 @@ p {
   cursor: pointer;
 }
 
-#copy-btn:hover {
+#result-actions button:hover {
   background: #333;
+}
+
+#map-img {
+  display: none;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-top: 0.75rem;
+}
+
+#map-img.visible {
+  display: block;
 }
 
 #result {

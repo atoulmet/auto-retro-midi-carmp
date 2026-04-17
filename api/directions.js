@@ -43,7 +43,8 @@ export default async function handler(req, res) {
   }
 
   const text = formatDirections(data, waypoints);
-  return res.status(200).json({ text });
+  const polyline = data.routes[0].overview_polyline.points;
+  return res.status(200).json({ text, polyline });
 }
 
 function stripHtml(html) {

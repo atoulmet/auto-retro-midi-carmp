@@ -6,14 +6,20 @@ const status = document.getElementById("status");
 const resultWrapper = document.getElementById("result-wrapper");
 const result = document.getElementById("result");
 const copyBtn = document.getElementById("copy-btn");
+const mapBtn = document.getElementById("map-btn");
+const mapImg = document.getElementById("map-img");
+
+let currentPolyline = null;
 
 function setStatus(msg, type = "") {
   status.textContent = msg;
   status.className = type;
 }
 
-function showResult(text) {
+function showResult(text, polyline) {
   result.textContent = text;
+  currentPolyline = polyline || null;
+  mapImg.classList.remove("visible");
   resultWrapper.classList.add("visible");
 }
 
@@ -69,7 +75,7 @@ async function processUrl() {
   }
 
   setStatus("");
-  showResult(data.text);
+  showResult(data.text, data.polyline);
 }
 
 // --- GPX ---
@@ -160,7 +166,7 @@ async function processFile(file) {
   }
 
   setStatus("");
-  showResult(data.text);
+  showResult(data.text, data.polyline);
 }
 
 // --- Copy ---
@@ -169,6 +175,31 @@ copyBtn.addEventListener("click", async () => {
   await navigator.clipboard.writeText(result.textContent);
   copyBtn.textContent = "Copié !";
   setTimeout(() => (copyBtn.textContent = "Copier"), 1500);
+});
+
+// --- Map image ---
+
+mapBtn.addEventListener("click", async () => {
+  if (!currentPolyline) return;
+
+  mapBtn.textContent = "Chargement…";
+
+  const res = await fetch("/api/static-map", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ polyline: currentPolyline }),
+  });
+
+  if (!res.ok) {
+    mapBtn.textContent = "Erreur";
+    setTimeout(() => (mapBtn.textContent = "Générer une image"), 1500);
+    return;
+  }
+
+  const blob = await res.blob();
+  mapImg.src = URL.createObjectURL(blob);
+  mapImg.classList.add("visible");
+  mapBtn.textContent = "Générer une image";
 });
 
 // --- Events ---
