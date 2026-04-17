@@ -190,11 +190,7 @@ mapBtn.addEventListener("click", async () => {
   const res = await fetch("/api/static-map", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      polyline: currentMapData.polyline,
-      origin: currentMapData.origin,
-      destination: currentMapData.destination,
-    }),
+    body: JSON.stringify({ polyline: currentMapData.polyline }),
   });
 
   if (!res.ok) {
