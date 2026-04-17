@@ -27,6 +27,46 @@ p {
   margin-bottom: 1.5rem;
 }
 
+#url-section {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#url-input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+#url-input:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+#url-btn {
+  padding: 0.6rem 1.2rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#url-btn:hover {
+  background: #333;
+}
+
+.separator {
+  text-align: center;
+  color: #999;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
 #dropzone {
   border: 2px dashed #bbb;
   border-radius: 12px;

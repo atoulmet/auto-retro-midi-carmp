@@ -14,9 +14,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Il faut au moins 2 points" });
   }
 
-  const origin = `${waypoints[0].lat},${waypoints[0].lng}`;
-  const destination = `${waypoints[waypoints.length - 1].lat},${waypoints[waypoints.length - 1].lng}`;
-  const intermediate = waypoints.slice(1, -1).map((w) => `${w.lat},${w.lng}`);
+  const toParam = (w) =>
+    w.lat != null && w.lng != null ? `${w.lat},${w.lng}` : w.name;
+
+  const origin = toParam(waypoints[0]);
+  const destination = toParam(waypoints[waypoints.length - 1]);
+  const intermediate = waypoints.slice(1, -1).map(toParam);
 
   const params = new URLSearchParams({
     origin,

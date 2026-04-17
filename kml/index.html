@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KML → Itinéraire</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>KML → Itinéraire</h1>
+      <p>Glissez un fichier KML exporté depuis Google Maps pour extraire l'itinéraire détaillé.</p>
+
+      <div id="dropzone">
+        <span>Glissez votre fichier .kml ici</span>
+        <span class="sub">ou cliquez pour sélectionner</span>
+        <input type="file" id="file-input" accept=".kml" />
+      </div>
+
+      <div id="status"></div>
+
+      <pre id="result"></pre>
+    </div>
+
+    <script type="module" src="/src/kml.js"></script>
+  </body>
+</html>
